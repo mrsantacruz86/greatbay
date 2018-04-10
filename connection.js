@@ -1,12 +1,12 @@
-var mysql = require('mysql');
-console.log('Loading Connection...');
+require('dotenv').config();
+console.log('Loading Connection Setup...');
 
-var connection = mysql.createConnection({
+exports.config = {
 	host: process.env.HOST,
 	user: process.env.USER,
 	password: process.env.PASSWORD,
-	database: "greatbay_db"
-});
+	port: process.env.PORT,
+	database: process.env.DATABASE
+};
 // connection.connect();
-module.exports = connection;
 
