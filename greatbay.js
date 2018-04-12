@@ -4,21 +4,18 @@ const inquirer = require('inquirer');
 console.log('Loading Connection...');
 
 var connection = mysql.createConnection(conn.config);
-connection.connect(function (err)
-{
+connection.connect(function (err) {
   console.log(`Connected as id: ${connection.threadId}`);
   start();
 });
 
-function start()
-{
+function start() {
   inquirer.prompt({
     name: "postOrBid",
     type: "list",
     message: "would you like to [POST] an auction or [BID] on an auction?",
     choices: ["POST", "BID"]
-  }).then(function (answer)
-  {
+  }).then(function (answer) {
     if (answer.postOrBid.toUpperCase() === "POST") {
       postAuction();
     } else {
@@ -27,61 +24,64 @@ function start()
   });
 }
 
-function postAuction(){
+function postAuction() {
   inquirer.prompt(
     [{
-        name: "item",
-        type: "input",
-        message: "What is the item you wish to submit?"
-      },{
-        name: "category",
-        type: "input",
-        message: "What category do you like to place it in?"
-      },{
-        name: "startingBid",
-        type: "input",
-        message: "What would you like the startig bid to be?",
-        validate: function(value){
-          if(isNaN(value) === false){
-            return true;
-          } else{
-            return false;
-          }
+      name: "item",
+      type: "input",
+      message: "What is the item you wish to submit?"
+    }, {
+      name: "category",
+      type: "input",
+      message: "What category do you like to place it in?"
+    }, {
+      name: "startingBid",
+      type: "input",
+      message: "What would you like the startig bid to be?",
+      validate: function (value) {
+        if (isNaN(value) === false) {
+          return true;
+        } else {
+          return false;
         }
       }
+    }
     ]
-  ).then(function(answer){
+  ).then(function (answer) {
     connection.query("INSERT INTO auctions SET ?", {
       itemname: answer.item,
       category: answer.category,
       startingbid: answer.startingBid,
       highestbid: answer.startingBid
     },
-    function (err,res) {
-      if (err) throw err;
-      console.log("Your auction was created successfuly!");
-      start();
-    });
+      function (err, res) {
+        if (err) throw err;
+        console.log("Your auction was created successfuly!");
+        start();
+      });
   });
 }
 
-function bidAuction()
-{
-  connection.query("SELECT * FROM auctions", function(err, res){
-    // console.log(res);
+function bidAuction() {
+  connection.query("SELECT * FROM auctions", function (err, res) {
+    // res.forEach(element => {
+    //   console.log(element.itemname);
+    // });
     inquirer.prompt({
       name: "choice",
       type: "list",
-      choices: function(value){
+      choices: function (value) {
         var choiceArray = [];
-        res.forEach(i => {
-          res.itemname;
+        res.forEach(element => {
+          choiceArray.push(element.itemname);
         });
         return choiceArray;
       },
-      message: "What auction would you like to place a bid on?" 
-    }).then(function(answer){
-
+      message: "What auction would you like to place a bid on?"
+    }).then(function (err, answer) {
+      if (err) { console.log(err) }
+      console.log("this is the item you chose: " + answer.choice);
     });
   });
+  start();
 }
