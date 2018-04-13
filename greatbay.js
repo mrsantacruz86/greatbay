@@ -3,7 +3,7 @@ const conn = require('./connection');
 const inquirer = require('inquirer');
 console.log('Loading Connection...');
 
-var connection = mysql.createConnection(conn.config);
+var connection = mysql.createConnection(config);
 connection.connect(function (err) {
   console.log(err);
   console.log(`Connected as id: ${connection.threadId}`);
@@ -70,6 +70,7 @@ function bidAuction() {
     inquirer.prompt({
       name: "choice",
       type: "list",
+      message: "What auction would you like to place a bid on?",
       choices: function (value) {
         var choiceArray = [];
         res.forEach(element => {
@@ -77,7 +78,6 @@ function bidAuction() {
         });
         return choiceArray;
       },
-      message: "What auction would you like to place a bid on?"
     }).then(function (answer) {
       console.log("this is the item you chose: " + answer.choice);
     });
