@@ -3,28 +3,32 @@ const conn = require('./connection');
 const inquirer = require('inquirer');
 console.log('Loading Connection...');
 
-var connection = mysql.createConnection(config);
-connection.connect(function (err) {
+var connection = mysql.createConnection(conn.config);
+connection.connect(function (err)
+{
   console.log(err);
   console.log(`Connected as id: ${connection.threadId}`);
   start();
 });
 
-function start() {
+function start()
+{
   inquirer.prompt({
     name: "postOrBid",
     type: "list",
-    message: "would you like to [POST] an auction or [BID] on an auction?",
+    message: "Would you like to [POST] an auction or [BID] on an auction?",
     choices: ["POST", "BID"]
-  }).then(function (answer) {
-    if (answer.postOrBid.toUpperCase() === "POST") {
+  }).then(function (answer)
+  {
+    if (answer.postOrBid === "POST") {
       postAuction();
     } else {
       bidAuction();
     }
   });
 }
-function postAuction() {
+function postAuction()
+{
   inquirer.prompt(
     [{
       name: "item",
@@ -38,7 +42,8 @@ function postAuction() {
       name: "startingBid",
       type: "input",
       message: "What would you like the startig bid to be?",
-      validate: function (value) {
+      validate: function (value)
+      {
         if (isNaN(value) === false) {
           return true;
         } else {
@@ -47,14 +52,16 @@ function postAuction() {
       }
     }
     ]
-  ).then(function (answer) {
+  ).then(function (answer)
+  {
     connection.query("INSERT INTO auctions SET ?", {
       itemname: answer.item,
       category: answer.category,
       startingbid: answer.startingBid,
       highestbid: answer.startingBid
     },
-      function (err, res) {
+      function (err, res)
+      {
         if (err) throw err;
         console.log("Your auction was created successfuly!");
         start();
@@ -62,8 +69,10 @@ function postAuction() {
   });
 }
 
-function bidAuction() {
-  connection.query("SELECT * FROM auctions", function (err, res) {
+function bidAuction()
+{
+  connection.query("SELECT * FROM auctions", function (err, res)
+  {
     // res.forEach(element => {
     //   console.log(element.itemname);
     // });
@@ -71,15 +80,50 @@ function bidAuction() {
       name: "choice",
       type: "list",
       message: "What auction would you like to place a bid on?",
-      choices: function (value) {
+      choices: function (value)
+      {
         var choiceArray = [];
-        res.forEach(element => {
+        res.forEach(element =>
+        {
           choiceArray.push(element.itemname);
         });
         return choiceArray;
       },
-    }).then(function (answer) {
-      console.log("this is the item you chose: " + answer.choice);
+    }).then(function (answer)
+    {
+      // console.log("this is the item you chose: " + answer.choice);
+      res.forEach(element =>
+      {
+        if (element.itemname === answer.choice) {
+          var chosenItem = element;
+          inquirer.prompt({
+            name: "bid",
+            type: "insput",
+            message: "how much do you like to bid?",
+            validate: function (value)
+            {
+              if (isNaN(value) === false) {
+                return true;
+              } else {
+                return false;
+              }
+            }
+          }).then(function (answer)
+          {
+            if (chosenItem.highestbid < parseInt(answer.bid)) {
+              conn.query("UPDATE auctions SET ? WHERE ?", 
+              [{highestbid: answer.bid},{id: chosenItem.id}],
+              function(err, res){
+                console.log("Bid successfully placed!");
+                start();
+              });
+            } else{
+              console.log("Your bid was too low. Try again...")
+            }
+          });
+        }
+      });
+
     });
   });
   start();
