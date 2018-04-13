@@ -5,6 +5,7 @@ console.log('Loading Connection...');
 
 var connection = mysql.createConnection(conn.config);
 connection.connect(function (err) {
+  console.log(err);
   console.log(`Connected as id: ${connection.threadId}`);
   start();
 });
@@ -23,7 +24,6 @@ function start() {
     }
   });
 }
-
 function postAuction() {
   inquirer.prompt(
     [{
@@ -78,8 +78,7 @@ function bidAuction() {
         return choiceArray;
       },
       message: "What auction would you like to place a bid on?"
-    }).then(function (err, answer) {
-      if (err) { console.log(err) }
+    }).then(function (answer) {
       console.log("this is the item you chose: " + answer.choice);
     });
   });
